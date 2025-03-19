@@ -120,7 +120,7 @@ class Picar:
         GPIO.cleanup()
 
 #CLAW
-    def ctrl_range(raw, max_genout, min_genout):
+    def ctrl_range(self, raw, max_genout, min_genout):
         if raw > max_genout:
             raw_output = max_genout
         elif raw < min_genout:
@@ -142,29 +142,29 @@ class Picar:
         self.pwm.set_pwm(self.arm_channel, 0, self.arm_pos)
         time.sleep(0.02)"""
 
-    def closeClaw(speed):
+    def closeClaw(self,speed):
         global pwm3_pos
-        if pwm3_direction:
+        if self.pwm3_direction:
             pwm3_pos -= speed
-            pwm3_pos = ctrl_range(pwm3_pos, pwm3_max, pwm3_min)
-            pwm.set_pwm(3, 0, pwm3_pos)
+            pwm3_pos = ctrl_range(pwm3_pos, self.pwm3_max, self.pwm3_min)
+            self.pwm.set_pwm(3, 0, pwm3_pos)
         else:
             pwm3_pos += speed
-            pwm3_pos = ctrl_range(pwm3_pos, pwm3_max, pwm3_min)
-            pwm.set_pwm(3, 0, pwm3_pos)
+            pwm3_pos = ctrl_range(pwm3_pos, self.pwm3_max, self.pwm3_min)
+            self.pwm.set_pwm(3, 0, pwm3_pos)
         print(pwm3_pos)
 
 
-    def openClaw(speed):
+    def openClaw(self, speed):
         global pwm3_pos
-        if pwm3_direction:
+        if self.pwm3_direction:
             pwm3_pos += speed
-            pwm3_pos = ctrl_range(pwm3_pos, pwm3_max, pwm3_min)
-            pwm.set_pwm(3, 0, pwm3_pos)
+            pwm3_pos = ctrl_range(pwm3_pos, self.pwm3_max, self.pwm3_min)
+            self.pwm.set_pwm(3, 0, pwm3_pos)
         else:
             pwm3_pos -= speed
-            pwm3_pos = ctrl_range(pwm3_pos, pwm3_max, pwm3_min)
-            pwm.set_pwm(3, 0, pwm3_pos)
+            pwm3_pos = ctrl_range(pwm3_pos, self.pwm3_max, self.pwm3_min)
+            self.pwm.set_pwm(3, 0, pwm3_pos)
         print(pwm3_pos)
 
 # ARM
