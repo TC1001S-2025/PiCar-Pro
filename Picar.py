@@ -153,6 +153,7 @@ class Picar:
         self.pwm.set_pwm(self.grip_channel, 0, self.grip_pos)
         time.sleep(0.02)
 
+#Arm
     def moveArmUp(self):
         pass
 
