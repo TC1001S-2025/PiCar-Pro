@@ -3,14 +3,28 @@
 Esta es la documentación para usar la librería de PiCar.py
 Con las siguientes funciones podrás manipular todas las funciones del robot para completar una tarea en específico.
 
+A considerar:
+- Al ejecutar el código del robot, todos los servos vuelven a su posición inicial. Por esta razón todas las instrucciones que requieran ser ejecutadas, deberán ser aplicadas en una sola ejecución.
+- Al ejecutar la misma función varias veces se necesita usar `time.sleep()` con un tiempo mayor o igual a 0.3. Esto para darle tiempo al robot de ejecutar la acción y poder iniciar con la siguiente.
+Por ejemplo:
+```python
+from PiCar import PiCar
+import time
+
+PiCar = PiCar()
+PiCar.moveBackward()
+time.sleep(0.5)
+PiCar.moveBackward()
+```
+
 ## Movimiento
 
 Las funciones de movimiento son las siguientes:
 
 - `moveForward()`: El robot se mueve hacia enfrente por 1 segundo
 - `moveBackward()`: El robot se mueve hacia atrás por 1 segundo
-- `turnRight()`: El robot se mueve hacia la derecha por 1 segundo
-- `turnLeft():` El robot se mueve hacia la izquierda por 1 segundo
+- `rotateRight()`: El robot se mueve hacia la derecha por 1 segundo
+- `rotateLeft():` El robot se mueve hacia la izquierda por 1 segundo
 
 ## Brazo
 
@@ -27,5 +41,12 @@ Las funciones de la garra son las siguientes:
 
 - `openClaw()`: El robot abre la garra
 - `closeClaw()`: El robot cierra la garra
-- `moveClawUp()`: El robot mueve la garra 15° hacia arriba
-- `moveClawDown()`: El robor mueve la garra 15° hacia abajo
+- `moveWristUp()`: El robot mueve la garra 15° hacia arriba
+- `moveWristDown()`: El robor mueve la garra 15° hacia abajo
+
+## Luces
+
+Las funciones de las luces son las siguientes:
+
+- `ledOn()`: El robot enciende las luces
+- `ledOff()`: El robot apaga las luces
