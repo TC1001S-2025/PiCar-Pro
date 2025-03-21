@@ -4,7 +4,18 @@ Esta es la documentación para usar la librería de PiCar.py
 Con las siguientes funciones podrás manipular todas las funciones del robot para completar una tarea en específico.
 
 A considerar:
-Al ejecutar el código del robot, todos los servos vuelven a su posición inicial. Por esta razón todas las instrucciones que requieran ser ejecutadas, deberán ser aplicadas en una sola ejecución.
+- Al ejecutar el código del robot, todos los servos vuelven a su posición inicial. Por esta razón todas las instrucciones que requieran ser ejecutadas, deberán ser aplicadas en una sola ejecución.
+- Al ejecutar la misma función varias veces se necesita usar `time.sleep()` con un tiempo mayor o igual a 0.3. Esto para darle tiempo al robot de ejecutar la acción y poder iniciar con la siguiente.
+Por ejemplo:
+```python
+from PiCar import PiCar
+import time
+
+PiCar = PiCar()
+PiCar.moveBackward()
+time.sleep(0.5)
+PiCar.moveBackward()
+```
 
 ## Movimiento
 
