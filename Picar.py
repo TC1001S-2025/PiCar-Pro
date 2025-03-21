@@ -5,112 +5,112 @@ import Adafruit_PCA9685
 class Picar:
 
     def __init__(self):
+
+        # CONSTANTS
+        # CHASSIS CONSTANTS
+        self.MOTOR_A_EN    = 4
+        self.MOTOR_B_EN    = 17
+
+        self.MOTOR_A_PIN1  = 26
+        self.MOTOR_A_PIN2  = 21
+        self.MOTOR_B_PIN1  = 27
+        self.MOTOR_B_PIN2  = 18
+
+        self.PWM1_INITIAL_POSITION = 300
+        self.PWM1_MAX_YAW  = 480
+        self.PWM1_MIN_YAW  = 160
+
+        # ARM CONSTANTS
+        self.ARM_PITCH_SERVO = 2
+        self.ARM_YAW_SERVO = 0
+        self.ARM_INITIAL_PITCH = 300
+        self.ARM_INITIAL_YAW = 300
+
+        # Definir límites del brazo
+        self.ARM_MIN_PITCH = 100
+        self.ARM_MAX_PITCH = 500
+        self.ARM_MIN_YAW = 150
+        self.ARM_MAX_YAW = 450
+
+        # CLAW CONSTANTS
+        self.CLAW_CHANNEL = 4
+
+        # WRIST CONSTANTS
+        self.WRIST_SERVO = 3 
+
+        self.WRIST_MIN_PITCH = 300 
+        self.WRIST_MAX_PITCH = 500  
+
+        self.WRIST_INITIAL_PITCH = 400  
+
+        # lEDS CONSTANTS
+        self.LED_PINS = [5, 6, 13]
+
+        # CONSTRUCTORS
         # Inicialización del PCA9685
         self.pwm = Adafruit_PCA9685.PCA9685()
         self.pwm.set_pwm_freq(50)  # Frecuencia estándar para servos (50 Hz)
 
-
-        #CHASSIS CONSTRUCTOR
-        # Pines de los motores
-        self.Motor_A_EN    = 4
-        self.Motor_B_EN    = 17
-
-        self.Motor_A_Pin1  = 26
-        self.Motor_A_Pin2  = 21
-        self.Motor_B_Pin1  = 27
-        self.Motor_B_Pin2  = 18
-
-        self.pwm1_init = 300
-        self.pwm1_max  = 480
-        self.pwm1_min  = 160
-        self.pwm1_pos  = self.pwm1_init
-
+        #CHASSIS
+        self.pwm1_pos  = self.PWM1_INITIAL_POSITION
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
 
-        GPIO.setup(self.Motor_A_EN, GPIO.OUT)
-        GPIO.setup(self.Motor_B_EN, GPIO.OUT)
-        GPIO.setup(self.Motor_A_Pin1, GPIO.OUT)
-        GPIO.setup(self.Motor_A_Pin2, GPIO.OUT)
-        GPIO.setup(self.Motor_B_Pin1, GPIO.OUT)
-        GPIO.setup(self.Motor_B_Pin2, GPIO.OUT)
+        GPIO.setup(self.MOTOR_A_EN, GPIO.OUT)
+        GPIO.setup(self.MOTOR_B_EN, GPIO.OUT)
+        GPIO.setup(self.MOTOR_A_PIN1, GPIO.OUT)
+        GPIO.setup(self.MOTOR_A_PIN2, GPIO.OUT)
+        GPIO.setup(self.MOTOR_B_PIN1, GPIO.OUT)
+        GPIO.setup(self.MOTOR_B_PIN2, GPIO.OUT)
 
-        self.pwm_A = GPIO.PWM(self.Motor_A_EN, 1000)
-        self.pwm_B = GPIO.PWM(self.Motor_B_EN, 1000)
+        self.pwm_A = GPIO.PWM(self.MOTOR_A_EN, 1000)
+        self.pwm_B = GPIO.PWM(self.MOTOR_B_EN, 1000)
 
         self.pwm_A.start(0)
         self.pwm_B.start(0)
 
-        self.pwm = Adafruit_PCA9685.PCA9685()
-        self.pwm.set_pwm_freq(50)
-
         self.stop()
 
-        #CLAW CONSTRUCTOR
-        # Canal del servo de la garra
-        self.CANAL_GARRA = 4
-
-
         #LEDS CONSTRUCTOR
-        #Inicializa la clase y configura los pines GPIO para los LEDs.
-        self.led_pins = [5, 6, 13]  # Pines GPIO para los LEDs
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
-        for pin in self.led_pins:
+        for pin in self.LED_PINS:
             GPIO.setup(pin, GPIO.OUT)
 
-        #ARM CONSTRUCTOR 
-        # Canal asignado en el PCA9685 para el servo que sube/baja el brazo
-        self.arm_up_down_servo = 2
-        # Canal asignado en el PCA9685 para el servo que gira el brazo
-        self.arm_rotation_servo = 0
-
-        # Definir límites del brazo
-        self.min_up_down = 100
-        self.max_up_down = 500
-        self.min_rotation = 150
-        self.max_rotation = 450
-
-        # Posición inicial en 300
-        self.position_up_down = 300
-        self.actual_rotation = 300
-
-        # Mover a la posición inicial al iniciar
-        self.initializePosition()
-
         #WRIST CONSTRUCTOR
-        self.wrist_up_down = 3 
+        self.wrist_actual_pitch = self.WRIST_INITIAL_PITCH
 
-        self.min_wrist_up_down = 300 
-        self.max_wrist_up_down = 500  
+        #ARM CONSTRUCTOR
+        self.arm_actual_pitch = self.ARM_INITIAL_PITCH
+        self.arm_actual_yaw = self.ARM_INITIAL_YAW
 
-        self.position_wrist_up_down = 400  
-
-        self.initializeWristPosition()
+        # Mover servos a la posición inicial al iniciar
+        self.initializePosition()
         
     def initializePosition(self):
-        self.pwm.set_pwm(self.arm_up_down_servo, 0, self.position_up_down)
-        self.pwm.set_pwm(self.arm_rotation_servo, 0, self.actual_rotation)
+        self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.ARM_INITIAL_PITCH)
+        self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.ARM_INITIAL_YAW)
+        self.pwm.set_pwm(self.WRIST_SERVO, 0, self.WRIST_INITIAL_PITCH)
 
 #CHASSIS
     def stop(self):
         # Detiene los motores
-        GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_A_Pin2, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin2, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN2, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN2, GPIO.LOW)
         self.pwm_A.ChangeDutyCycle(0)
         self.pwm_B.ChangeDutyCycle(0)
 
         # Detener servomotor
-        self.pwm.set_pwm(1, 0, self.pwm1_init)
+        self.pwm.set_pwm(1, 0, self.PWM1_INITIAL_POSITION)
 
     def moveBackward(self, speed=60, duration=1):
         # Mueve las llantas traseras hacia atrás
-        GPIO.output(self.Motor_A_Pin1, GPIO.HIGH)
-        GPIO.output(self.Motor_A_Pin2, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin1, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin2, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN1, GPIO.HIGH)
+        GPIO.output(self.MOTOR_A_PIN2, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN1, GPIO.HIGH)
+        GPIO.output(self.MOTOR_B_PIN2, GPIO.LOW)
 
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
@@ -120,10 +120,10 @@ class Picar:
 
     def moveForward(self, speed=60, duration=1):
         # Mueve las llantas traseras hacia adelante
-        GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN2, GPIO.HIGH)
 
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
@@ -133,12 +133,12 @@ class Picar:
 
     def rotateRight(self, speed=48, degrees=15):
         # Gira a la derecha y mueve el servomotor pwm1
-        self.pwm.set_pwm(1, 0, self.pwm1_min)  # Mover el servomotor pwm1
+        self.pwm.set_pwm(1, 0, self.PWM1_ARM_MIN_YAW)  # Mover el servomotor pwm1
 
-        GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN2, GPIO.HIGH)
 
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
@@ -148,12 +148,12 @@ class Picar:
 
     def rotateLeft(self, speed=52, degrees=15):
         # Gira a la izquierda y mueve el servomotor pwm1
-        self.pwm.set_pwm(1, 0, self.pwm1_max)  # Mover el servomotor pwm1
+        self.pwm.set_pwm(1, 0, self.PWM1_MAX_YAW)  # Mover el servomotor pwm1
 
-        GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
-        GPIO.output(self.Motor_B_Pin2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
+        GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
+        GPIO.output(self.MOTOR_B_PIN2, GPIO.HIGH)
         
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
@@ -178,69 +178,68 @@ class Picar:
         else:
             print('Wrong Command: Example--switch(3, 1)->to switch on port3')
 
-    def LedOff(self):
+    def ledOff(self):
         #Apaga todos los LEDs.
         self.switch(1, 0)
         self.switch(2, 0)
         self.switch(3, 0)
 
-    def LedOn(self):
+    def ledOn(self):
         #Enciende todos los LEDs.
         self.switch(1, 1)
         self.switch(2, 1)
         self.switch(3, 1)
 
 #CLAW
-
     # Función para convertir grados a pulsos del PCA9685
-    def grados_a_pulsos(self, grados):
+    def degreesToPulse(self, grados):
         pulso_min = 150   # Aproximadamente 0°
         pulso_max = 600   # Aproximadamente 180°
         return int(pulso_min + (grados / 180.0) * (pulso_max - pulso_min))
 
     # Método para abrir la garra
-    def cerrar_garra(self):
-        self.pwm.set_pwm(self.CANAL_GARRA, 0, self.grados_a_pulsos(0))
+    def closeClaw(self):
+        time.sleep(1)
+        self.pwm.set_pwm(self.CLAW_CHANNEL, 0, self.degreesToPulse(0))
+        time.sleep(0.5)
 
     # Método para cerrar la garra
-    def abrir_garra(self):
-        self.pwm.set_pwm(self.CANAL_GARRA, 0, self.grados_a_pulsos(90))  # Ajusta el valor según tu servo
+    def openClaw(self):
+        self.pwm.set_pwm(self.CLAW_CHANNEL, 0, self.degreesToPulse(90))  # Ajusta el valor según tu servo
 
 # ARM
     def moveArmUp(self):
-        if self.position_up_down + 15 <= self.max_up_down:
-            self.position_up_down += 15
-            self.pwm.set_pwm(self.arm_up_down_servo, 0, self.position_up_down)
-        print("Actual rotation: " + str(self.position_up_down))
+        if self.arm_actual_pitch + 15 <= self.ARM_MAX_PITCH:
+            self.arm_actual_pitch += 15
+            self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.arm_actual_pitch)
+        print("Actual rotation: " + str(self.arm_actual_pitch))
 
     def moveArmDown(self):
-        if self.position_up_down - 15 >= self.min_up_down:
-            self.position_up_down -= 15
-            self.pwm.set_pwm(self.arm_up_down_servo, 0, self.position_up_down)
-        print("Actual rotation: " + str(self.position_up_down))
+        if self.arm_actual_pitch - 15 >= self.ARM_MIN_PITCH:
+            self.arm_actual_pitch -= 15
+            self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.arm_actual_pitch)
+        print("Actual rotation: " + str(self.arm_actual_pitch))
 
     def rotateArmRight(self):
-        if self.actual_rotation + 15 <= self.max_rotation:
-            self.actual_rotation += 15
-            self.pwm.set_pwm(self.arm_rotation_servo, 0, self.actual_rotation)
-        print("Actual rotation: " + str(self.actual_rotation))
+        if self.arm_actual_yaw + 15 <= self.ARM_MAX_YAW:
+            self.arm_actual_yaw += 15
+            self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.arm_actual_yaw)
+        print("Actual rotation: " + str(self.arm_actual_yaw))
 
     def rotateArmLeft(self):
-        if self.actual_rotation - 15 >= self.min_rotation:
-            self.actual_rotation -= 15
-            self.pwm.set_pwm(self.arm_rotation_servo, 0, self.actual_rotation)
-        print("Actual rotation: " + str(self.actual_rotation))
+        if self.arm_actual_yaw - 15 >= self.ARM_MIN_YAW:
+            self.arm_actual_yaw -= 15
+            self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.arm_actual_yaw)
+        print("Actual rotation: " + str(self.arm_actual_yaw))
 
-#WRIST
-    def initializeWristPosition(self):
-        self.pwm.set_pwm(self.wrist_up_down, 0, self.position_wrist_up_down)
+#WRIST  
 
     def moveWristUp(self):
-        if self.position_wrist_up_down + 15 <= self.max_wrist_up_down:
-            self.position_wrist_up_down += 15
-            self.pwm.set_pwm(self.wrist_up_down, 0, self.position_wrist_up_down)
+        if self.wrist_actual_pitch + 15 <= self.WRIST_MAX_PITCH:
+            self.wrist_actual_pitch += 15
+            self.pwm.set_pwm(self.WRIST_SERVO, 0, self.wrist_actual_pitch)
 
     def moveWristDown(self):
-        if self.position_wrist_up_down - 15 >= self.min_wrist_up_down:
-            self.position_wrist_up_down -= 15
-            self.pwm.set_pwm(self.wrist_up_down, 0, self.position_wrist_up_down)
+        if self.wrist_actual_pitch - 15 >= self.WRIST_MIN_PITCH:
+            self.wrist_actual_pitch -= 15
+            self.pwm.set_pwm(self.WRIST_SERVO, 0, self.wrist_actual_pitch)
