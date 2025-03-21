@@ -1,21 +1,18 @@
-# ¿Cómo usar los comandos de PiCar-Pro?
+# PiCar-Pro
 
 Esta es la documentación para usar la librería de PiCar.py
 Con las siguientes funciones podrás manipular todas las funciones del robot para completar una tarea en específico.
 
 A considerar:
 - Al ejecutar el código del robot, todos los servos vuelven a su posición inicial. Por esta razón todas las instrucciones que requieran ser ejecutadas, deberán ser aplicadas en una sola ejecución.
-- Al ejecutar la misma función varias veces se necesita usar `time.sleep()` con un tiempo mayor o igual a 0.3. Esto para darle tiempo al robot de ejecutar la acción y poder iniciar con la siguiente.
-Por ejemplo:
-```python
-from PiCar import PiCar
-import time
 
-PiCar = PiCar()
-PiCar.moveBackward()
-time.sleep(0.5)
-PiCar.moveBackward()
-```
+## Instrucciones
+1. Prender la Raspberry Pi insertando las pilas en la parte inferior del robot o conectando un cable de alimentación tipo C a la Raspberry Pi.
+2. Prender un router y conectar tanto la Raspberry Pi como la computadora que se usará para programar al PiCar a la misma red.
+3. Conectar la computadora a la Raspberry Pi mediante el método de preferencia (Putty, SSH). `Usuario: car`, `Contraseña: raspberry`. Por SSH sería de la siguiente manera: ssh car@ip-de-la-RaspberryPI -p 22
+5. Crear un nuevo archivo .py e importar la librería PiCar localizada en `Documents/PiCar-Pro`
+6. Usar las librerías libremente :)
+7. Ejecutar el programa con `python3 <nombre_del_programa>.py`
 
 ## Movimiento
 
