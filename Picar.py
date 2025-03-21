@@ -131,12 +131,12 @@ class Picar:
         time.sleep(duration)
         self.stop()
 
-    def rotateRight(self, speed=60, degrees=15):
+    def rotateRight(self, speed=48, degrees=15):
         # Gira a la derecha y mueve el servomotor pwm1
         self.pwm.set_pwm(1, 0, self.pwm1_min)  # Mover el servomotor pwm1
 
-        GPIO.output(self.Motor_A_Pin1, GPIO.HIGH)
-        GPIO.output(self.Motor_A_Pin2, GPIO.LOW)
+        GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
+        GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
         GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
         GPIO.output(self.Motor_B_Pin2, GPIO.HIGH)
 
@@ -146,14 +146,14 @@ class Picar:
         time.sleep(degrees / 10)  # Ajustar la duración del giro
         self.stop()
 
-    def rotateLeft(self, speed=60, degrees=15):
+    def rotateLeft(self, speed=52, degrees=15):
         # Gira a la izquierda y mueve el servomotor pwm1
         self.pwm.set_pwm(1, 0, self.pwm1_max)  # Mover el servomotor pwm1
 
         GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
         GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin1, GPIO.HIGH)
-        GPIO.output(self.Motor_B_Pin2, GPIO.LOW)
+        GPIO.output(self.Motor_B_Pin1, GPIO.LOW)
+        GPIO.output(self.Motor_B_Pin2, GPIO.HIGH)
         
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
@@ -240,7 +240,7 @@ class Picar:
             self.position_wrist_up_down += 15
             self.pwm.set_pwm(self.wrist_up_down, 0, self.position_wrist_up_down)
 
-    def movewristDown(self):
+    def moveWristDown(self):
         if self.position_wrist_up_down - 15 >= self.min_wrist_up_down:
             self.position_wrist_up_down -= 15
             self.pwm.set_pwm(self.wrist_up_down, 0, self.position_wrist_up_down)
