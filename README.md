@@ -3,6 +3,9 @@
 Esta es la documentación para usar la librería de PiCar.py
 Con las siguientes funciones podrás manipular todas las funciones del robot para completar una tarea en específico.
 
+A considerar:
+Al ejecutar el código del robot, todos los servos vuelven a su posición inicial. Por esta razón todas las instrucciones que requieran ser ejecutadas, deberán ser aplicadas en una sola ejecución.
+
 ## Movimiento
 
 Las funciones de movimiento son las siguientes:
@@ -29,3 +32,10 @@ Las funciones de la garra son las siguientes:
 - `closeClaw()`: El robot cierra la garra
 - `moveClawUp()`: El robot mueve la garra 15° hacia arriba
 - `moveClawDown()`: El robor mueve la garra 15° hacia abajo
+
+## Luces
+
+Las funciones de las luces son las siguientes:
+
+- `ledOn()`: El robot enciende las luces
+- `ledOff()`: El robot apaga las luces
