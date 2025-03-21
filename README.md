@@ -1,5 +1,10 @@
 # PiCar-Pro
 
+- Brisa Sofía León Pérez A01771208
+- Luis Enrique Bartolo Macario A01773034
+- Mariana Isabel Aguilar Espíndola A01772501
+- Esteban Leal Menéndez A01369877
+
 Esta es la documentación para usar la librería de PiCar.py
 Con las siguientes funciones podrás manipular todas las funciones del robot para completar una tarea en específico.
 
