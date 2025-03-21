@@ -105,7 +105,7 @@ class Picar:
         # Detener servomotor
         self.pwm.set_pwm(1, 0, self.pwm1_init)
 
-    def moveBackward(self, speed=60, duration=3):
+    def moveBackward(self, speed=60, duration=1):
         # Mueve las llantas traseras hacia atrás
         GPIO.output(self.Motor_A_Pin1, GPIO.HIGH)
         GPIO.output(self.Motor_A_Pin2, GPIO.LOW)
@@ -118,7 +118,7 @@ class Picar:
         time.sleep(duration)
         self.stop()
 
-    def moveForward(self, speed=60, duration=3):
+    def moveForward(self, speed=60, duration=1):
         # Mueve las llantas traseras hacia adelante
         GPIO.output(self.Motor_A_Pin1, GPIO.LOW)
         GPIO.output(self.Motor_A_Pin2, GPIO.HIGH)
