@@ -3,59 +3,71 @@ import time
 import Adafruit_PCA9685
 
 class Picar:
+    """
+    Clase para controlar el robot Picar, que integra:
+    - Chasis (motores para desplazamiento).
+    - Brazo robótico (movimientos de pitch y yaw).
+    - Garra (apertura y cierre).
+    - Muñeca (ajuste de pitch).
+    - LEDs (iluminación).
+    
+    Utiliza la librería Adafruit_PCA9685 para controlar servomotores a través del PWM,
+    y RPi.GPIO para el manejo de los pines GPIO de la Raspberry Pi.
+    """
 
     def __init__(self):
+        """
+        Constructor de la clase.
+        Inicializa constantes, configura pines GPIO, inicia la comunicación con el PCA9685
+        y posiciona los servomotores a sus posiciones iniciales.
+        """
+        # CONSTANTES DEL CHASIS
+        self.MOTOR_A_EN    = 4        # Pin de habilitación del motor A
+        self.MOTOR_B_EN    = 17       # Pin de habilitación del motor B
 
-        # CONSTANTS
-        # CHASSIS CONSTANTS
-        self.MOTOR_A_EN    = 4
-        self.MOTOR_B_EN    = 17
+        self.MOTOR_A_PIN1  = 26       # Pin 1 para dirección del motor A
+        self.MOTOR_A_PIN2  = 21       # Pin 2 para dirección del motor A
+        self.MOTOR_B_PIN1  = 27       # Pin 1 para dirección del motor B
+        self.MOTOR_B_PIN2  = 18       # Pin 2 para dirección del motor B
 
-        self.MOTOR_A_PIN1  = 26
-        self.MOTOR_A_PIN2  = 21
-        self.MOTOR_B_PIN1  = 27
-        self.MOTOR_B_PIN2  = 18
+        self.PWM1_INITIAL_POSITION = 300  # Posición inicial del servomotor PWM1
+        self.PWM1_MAX_YAW  = 480            # Límite máximo para giro (yaw)
+        self.PWM1_MIN_YAW  = 160            # Límite mínimo para giro (yaw)
 
-        self.PWM1_INITIAL_POSITION = 300
-        self.PWM1_MAX_YAW  = 480
-        self.PWM1_MIN_YAW  = 160
+        # CONSTANTES DEL BRAZO ROBÓTICO
+        self.ARM_PITCH_SERVO = 2          # Canal PWM para el movimiento de pitch del brazo
+        self.ARM_YAW_SERVO = 0            # Canal PWM para el movimiento de yaw del brazo
+        self.ARM_INITIAL_PITCH = 300      # Posición inicial de pitch
+        self.ARM_INITIAL_YAW = 300        # Posición inicial de yaw
 
-        # ARM CONSTANTS
-        self.ARM_PITCH_SERVO = 2
-        self.ARM_YAW_SERVO = 0
-        self.ARM_INITIAL_PITCH = 300
-        self.ARM_INITIAL_YAW = 300
+        # Límites del brazo
+        self.ARM_MIN_PITCH = 100          # Límite mínimo para pitch
+        self.ARM_MAX_PITCH = 500          # Límite máximo para pitch
+        self.ARM_MIN_YAW = 150            # Límite mínimo para yaw
+        self.ARM_MAX_YAW = 450            # Límite máximo para yaw
 
-        # Definir límites del brazo
-        self.ARM_MIN_PITCH = 100
-        self.ARM_MAX_PITCH = 500
-        self.ARM_MIN_YAW = 150
-        self.ARM_MAX_YAW = 450
+        # CONSTANTES DE LA GARRA
+        self.CLAW_CHANNEL = 4             # Canal PWM para la garra
 
-        # CLAW CONSTANTS
-        self.CLAW_CHANNEL = 4
+        # CONSTANTES DE LA MUÑECA
+        self.WRIST_SERVO = 3              # Canal PWM para la muñeca
+        self.WRIST_MIN_PITCH = 300        # Límite mínimo para el pitch de la muñeca
+        self.WRIST_MAX_PITCH = 500        # Límite máximo para el pitch de la muñeca
+        self.WRIST_INITIAL_PITCH = 400    # Posición inicial del pitch de la muñeca
 
-        # WRIST CONSTANTS
-        self.WRIST_SERVO = 3 
+        # CONSTANTES DE LOS LEDS
+        self.LED_PINS = [5, 6, 13]        # Pines de los LEDs
 
-        self.WRIST_MIN_PITCH = 300 
-        self.WRIST_MAX_PITCH = 500  
-
-        self.WRIST_INITIAL_PITCH = 400  
-
-        # lEDS CONSTANTS
-        self.LED_PINS = [5, 6, 13]
-
-        # CONSTRUCTORS
-        # Inicialización del PCA9685
+        # CONSTRUCCIÓN E INICIALIZACIÓN DEL PCA9685
         self.pwm = Adafruit_PCA9685.PCA9685()
         self.pwm.set_pwm_freq(50)  # Frecuencia estándar para servos (50 Hz)
 
-        #CHASSIS
+        # CONFIGURACIÓN DEL CHASIS
         self.pwm1_pos  = self.PWM1_INITIAL_POSITION
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
 
+        # Configuración de los pines de los motores como salidas
         GPIO.setup(self.MOTOR_A_EN, GPIO.OUT)
         GPIO.setup(self.MOTOR_B_EN, GPIO.OUT)
         GPIO.setup(self.MOTOR_A_PIN1, GPIO.OUT)
@@ -63,38 +75,49 @@ class Picar:
         GPIO.setup(self.MOTOR_B_PIN1, GPIO.OUT)
         GPIO.setup(self.MOTOR_B_PIN2, GPIO.OUT)
 
-        self.pwm_A = GPIO.PWM(self.MOTOR_A_EN, 1000)
+        # Configuración del PWM para el control de velocidad de los motores
+        self.pwm_A = GPIO.PWM(self.MOTOR_A_EN, 1000)  # Frecuencia de 1000 Hz
         self.pwm_B = GPIO.PWM(self.MOTOR_B_EN, 1000)
 
         self.pwm_A.start(0)
         self.pwm_B.start(0)
 
+        # Detener motores al iniciar
         self.stop()
 
-        #LEDS CONSTRUCTOR
+        # CONFIGURACIÓN DE LOS LEDS
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         for pin in self.LED_PINS:
             GPIO.setup(pin, GPIO.OUT)
 
-        #WRIST CONSTRUCTOR
+        # CONFIGURACIÓN DE LA MUÑECA
         self.wrist_actual_pitch = self.WRIST_INITIAL_PITCH
 
-        #ARM CONSTRUCTOR
+        # CONFIGURACIÓN DEL BRAZO
         self.arm_actual_pitch = self.ARM_INITIAL_PITCH
         self.arm_actual_yaw = self.ARM_INITIAL_YAW
 
-        # Mover servos a la posición inicial al iniciar
+        # Posicionar los servos a sus posiciones iniciales
         self.initializePosition()
         
     def initializePosition(self):
+        """
+        Posiciona los servomotores del brazo y la muñeca a sus posiciones iniciales.
+        """
         self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.ARM_INITIAL_PITCH)
         self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.ARM_INITIAL_YAW)
         self.pwm.set_pwm(self.WRIST_SERVO, 0, self.WRIST_INITIAL_PITCH)
 
-#CHASSIS
+    # MÉTODOS DEL CHASIS
+
     def stop(self):
-        # Detiene los motores
+        """
+        Detiene el movimiento del chasis:
+        - Apaga los pines de dirección de los motores.
+        - Establece el ciclo de trabajo del PWM de los motores a 0.
+        - Restablece la posición del servomotor PWM1 a la posición inicial.
+        """
         GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
         GPIO.output(self.MOTOR_A_PIN2, GPIO.LOW)
         GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
@@ -102,11 +125,18 @@ class Picar:
         self.pwm_A.ChangeDutyCycle(0)
         self.pwm_B.ChangeDutyCycle(0)
 
-        # Detener servomotor
+        # Restablecer el servomotor PWM1
         self.pwm.set_pwm(1, 0, self.PWM1_INITIAL_POSITION)
 
     def moveBackward(self, speed=60, duration=1):
-        # Mueve las llantas traseras hacia atrás
+        """
+        Mueve el robot hacia atrás.
+        
+        Parámetros:
+            speed (int): Velocidad de movimiento (valor del ciclo de trabajo).
+            duration (float): Tiempo en segundos que se mantendrá el movimiento.
+        """
+        # Configuración de pines para mover los motores hacia atrás
         GPIO.output(self.MOTOR_A_PIN1, GPIO.HIGH)
         GPIO.output(self.MOTOR_A_PIN2, GPIO.LOW)
         GPIO.output(self.MOTOR_B_PIN1, GPIO.HIGH)
@@ -119,7 +149,14 @@ class Picar:
         self.stop()
 
     def moveForward(self, speed=60, duration=1):
-        # Mueve las llantas traseras hacia adelante
+        """
+        Mueve el robot hacia adelante.
+        
+        Parámetros:
+            speed (int): Velocidad de movimiento (valor del ciclo de trabajo).
+            duration (float): Tiempo en segundos que se mantendrá el movimiento.
+        """
+        # Configuración de pines para mover los motores hacia adelante
         GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
         GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
         GPIO.output(self.MOTOR_B_PIN1, GPIO.LOW)
@@ -132,8 +169,17 @@ class Picar:
         self.stop()
 
     def rotateRight(self, speed=48, degrees=15):
-        # Gira a la derecha y mueve el servomotor pwm1
-        self.pwm.set_pwm(1, 0, self.PWM1_ARM_MIN_YAW)  # Mover el servomotor pwm1
+        """
+        Rota el robot a la derecha.
+        
+        Además, mueve el servomotor PWM1 a una posición definida para el giro a la derecha.
+        
+        Parámetros:
+            speed (int): Velocidad de giro.
+            degrees (int): Grados de giro (utilizados para calcular la duración).
+        """
+        # Mover el servomotor PWM1 a la posición mínima (giro a la derecha)
+        self.pwm.set_pwm(1, 0, self.PWM1_MIN_YAW)
 
         GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
         GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
@@ -143,12 +189,21 @@ class Picar:
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
 
-        time.sleep(degrees / 10)  # Ajustar la duración del giro
+        time.sleep(degrees / 10)  # Duración del giro ajustada a los grados
         self.stop()
 
     def rotateLeft(self, speed=52, degrees=15):
-        # Gira a la izquierda y mueve el servomotor pwm1
-        self.pwm.set_pwm(1, 0, self.PWM1_MAX_YAW)  # Mover el servomotor pwm1
+        """
+        Rota el robot a la izquierda.
+        
+        Además, mueve el servomotor PWM1 a una posición definida para el giro a la izquierda.
+        
+        Parámetros:
+            speed (int): Velocidad de giro.
+            degrees (int): Grados de giro (utilizados para calcular la duración).
+        """
+        # Mover el servomotor PWM1 a la posición máxima (giro a la izquierda)
+        self.pwm.set_pwm(1, 0, self.PWM1_MAX_YAW)
 
         GPIO.output(self.MOTOR_A_PIN1, GPIO.LOW)
         GPIO.output(self.MOTOR_A_PIN2, GPIO.HIGH)
@@ -158,17 +213,29 @@ class Picar:
         self.pwm_A.ChangeDutyCycle(speed)
         self.pwm_B.ChangeDutyCycle(speed)
 
-        time.sleep(degrees / 10)  # Ajustar la duración del giro
+        time.sleep(degrees / 10)  # Duración del giro ajustada a los grados
         self.stop()
 
     def cleanup(self):
-        # Limpia los pines GPIO y apaga todo
+        """
+        Limpia la configuración de los pines GPIO y detiene todos los movimientos.
+        Se debe llamar antes de finalizar la ejecución del programa.
+        """
         self.stop()
         GPIO.cleanup()
 
-#LEDS
+    # MÉTODOS PARA LOS LEDS
+
     def switch(self, port, status):
-        #Controla el estado de un LED individual.
+        """
+        Controla el estado de un LED individual.
+        
+        Parámetros:
+            port (int): Número del puerto (1, 2 o 3) que identifica el LED.
+            status (int): Estado deseado (1 para encender, 0 para apagar).
+            
+        Si se ingresa un puerto no válido, se imprime un mensaje de error.
+        """
         if port == 1:
             GPIO.output(5, GPIO.HIGH if status == 1 else GPIO.LOW)
         elif port == 2:
@@ -179,67 +246,111 @@ class Picar:
             print('Wrong Command: Example--switch(3, 1)->to switch on port3')
 
     def ledOff(self):
-        #Apaga todos los LEDs.
+        """
+        Apaga todos los LEDs.
+        """
         self.switch(1, 0)
         self.switch(2, 0)
         self.switch(3, 0)
 
     def ledOn(self):
-        #Enciende todos los LEDs.
+        """
+        Enciende todos los LEDs.
+        """
         self.switch(1, 1)
         self.switch(2, 1)
         self.switch(3, 1)
 
-#CLAW
-    # Función para convertir grados a pulsos del PCA9685
+    # MÉTODOS PARA LA GARRA
+
     def degreesToPulse(self, grados):
+        """
+        Convierte un ángulo en grados a un pulso PWM correspondiente para el servo.
+        
+        Parámetros:
+            grados (float): Ángulo en grados (de 0 a 180).
+            
+        Retorna:
+            int: Valor de pulso correspondiente.
+            
+        Los valores de pulso mínimo y máximo se definen para representar aproximadamente 0° y 180°.
+        """
         pulso_min = 150   # Aproximadamente 0°
         pulso_max = 600   # Aproximadamente 180°
         return int(pulso_min + (grados / 180.0) * (pulso_max - pulso_min))
 
-    # Método para abrir la garra
     def closeClaw(self):
+        """
+        Abre la garra (movimiento de apertura).
+        
+        Se espera 1 segundo antes de mover el servo y 0.5 segundos después para estabilizar el movimiento.
+        """
         time.sleep(1)
         self.pwm.set_pwm(self.CLAW_CHANNEL, 0, self.degreesToPulse(0))
         time.sleep(0.5)
 
-    # Método para cerrar la garra
     def openClaw(self):
-        self.pwm.set_pwm(self.CLAW_CHANNEL, 0, self.degreesToPulse(90))  # Ajusta el valor según tu servo
+        """
+        Cierra la garra (movimiento de cierre).
+        
+        El valor del pulso se ajusta para posicionar el servo en 90° (ajustable según el servo).
+        """
+        self.pwm.set_pwm(self.CLAW_CHANNEL, 0, self.degreesToPulse(90))
 
-# ARM
+    # MÉTODOS PARA EL BRAZO ROBÓTICO
+
     def moveArmUp(self):
+        """
+        Mueve el brazo hacia arriba incrementando el ángulo de pitch.
+        Verifica que no se supere el límite máximo.
+        """
         if self.arm_actual_pitch + 15 <= self.ARM_MAX_PITCH:
             self.arm_actual_pitch += 15
             self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.arm_actual_pitch)
-        print("Actual rotation: " + str(self.arm_actual_pitch))
 
     def moveArmDown(self):
+        """
+        Mueve el brazo hacia abajo disminuyendo el ángulo de pitch.
+        Verifica que no se supere el límite mínimo.
+        """
         if self.arm_actual_pitch - 15 >= self.ARM_MIN_PITCH:
             self.arm_actual_pitch -= 15
             self.pwm.set_pwm(self.ARM_PITCH_SERVO, 0, self.arm_actual_pitch)
-        print("Actual rotation: " + str(self.arm_actual_pitch))
 
     def rotateArmRight(self):
+        """
+        Rota el brazo hacia la derecha incrementando el ángulo de yaw.
+        Verifica que no se supere el límite máximo.
+        """
         if self.arm_actual_yaw + 15 <= self.ARM_MAX_YAW:
             self.arm_actual_yaw += 15
             self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.arm_actual_yaw)
-        print("Actual rotation: " + str(self.arm_actual_yaw))
 
     def rotateArmLeft(self):
+        """
+        Rota el brazo hacia la izquierda disminuyendo el ángulo de yaw.
+        Verifica que no se supere el límite mínimo.
+        """
         if self.arm_actual_yaw - 15 >= self.ARM_MIN_YAW:
             self.arm_actual_yaw -= 15
             self.pwm.set_pwm(self.ARM_YAW_SERVO, 0, self.arm_actual_yaw)
-        print("Actual rotation: " + str(self.arm_actual_yaw))
 
-#WRIST  
+    # MÉTODOS PARA LA MUÑECA
 
     def moveWristUp(self):
+        """
+        Mueve la muñeca hacia arriba incrementando el ángulo de pitch.
+        Verifica que no se supere el límite máximo.
+        """
         if self.wrist_actual_pitch + 15 <= self.WRIST_MAX_PITCH:
             self.wrist_actual_pitch += 15
             self.pwm.set_pwm(self.WRIST_SERVO, 0, self.wrist_actual_pitch)
 
     def moveWristDown(self):
+        """
+        Mueve la muñeca hacia abajo disminuyendo el ángulo de pitch.
+        Verifica que no se supere el límite mínimo.
+        """
         if self.wrist_actual_pitch - 15 >= self.WRIST_MIN_PITCH:
             self.wrist_actual_pitch -= 15
             self.pwm.set_pwm(self.WRIST_SERVO, 0, self.wrist_actual_pitch)
